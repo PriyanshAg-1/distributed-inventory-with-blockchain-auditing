@@ -1,7 +1,7 @@
 {
   "name": "blockchain-inventory-management",
   "version": "1.0.0",
-  "main": "database.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "Blockchain Based Inventory Management System",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "mongoose": "^9.1.5"
   }
 }
