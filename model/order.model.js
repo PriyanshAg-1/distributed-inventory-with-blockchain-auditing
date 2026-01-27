@@ -8,7 +8,7 @@ const OrderSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    createdBy: {
+    supplier: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Supplier',
         required: true
