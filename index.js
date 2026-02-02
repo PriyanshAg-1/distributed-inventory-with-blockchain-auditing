@@ -5,6 +5,9 @@ const express =  require('express');
 const authRoutes = require('./routes/auth.routes');
 const protectedRoutes = require('./routes/protected.routes');
 const orderRoutes = require('./routes/order.routes');
+const productRoutes = require('./routes/product.routes');
+const supplierRoutes = require('./routes/supplier.routes');
+const warehouseRoutes = require('./routes/warehouse.routes');
 
 // Import database connection
 const { connectDB } = require('./model/database');
@@ -19,6 +22,11 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 // app.use('/api/protected', protectedRoutes);
 app.use('/api/orders', orderRoutes);
+
+// Use product, supplier, and warehouse routes
+app.use('/api/products', productRoutes);
+app.use('/api/suppliers', supplierRoutes);
+app.use('/api/warehouses', warehouseRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
