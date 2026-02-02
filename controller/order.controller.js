@@ -1,5 +1,7 @@
 const Order = require('../model/order.model');
 const Supplier = require('../model/supplier.model');
+const {reservedInventoryForOrderItem} = require('../services/inventory.services');
+
 
 // Create a new order
 const createOrder = async (req, res) => {
@@ -119,6 +121,16 @@ const updateOrderStatus = async (req, res) => {
             return res.status(400).json({message: 'Order is already processed'});
         }
 
+        if (status === 'approved'){
+            await reservedInventoryForOrderItem(order._id,warehouseId);
+        }
+        if (status === 'rejected'){
+            // Logic for releasing inventory can be added here if needed
+            await releaseInventoryForOrderItem(order._id,warehouseId);
+        }
+        if (status === 'completed'){
+            await finalizeInventoryForOrderItem(order._id,warehouseId);
+        }
         // Update the order status
         order.status = status;
         await order.save();
