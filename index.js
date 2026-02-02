@@ -17,21 +17,27 @@ app.use(express.json());
 
 // Use route modules
 app.use('/api/auth', authRoutes);
-app.use('/api/protected', protectedRoutes);
+// app.use('/api/protected', protectedRoutes);
 app.use('/api/orders', orderRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
 
 // Debug: Log the MongoDB URI to verify it's loaded correctly
-console.log(process.env.MONGO_URI);
+// console.log(process.env.MONGO_URI);
 
 // Connect to the database and start the server
-connectDB().then(() => {
-    app.listen(PORT, () => {
+if (process.env.NODE_ENV !== 'test') {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('Failed to connect to database', err);
     });
-}).catch(err => {
-    console.error('Failed to connect to the database', err);
-});
+}
+
+module.exports = app; // Export app for testing purposes
 

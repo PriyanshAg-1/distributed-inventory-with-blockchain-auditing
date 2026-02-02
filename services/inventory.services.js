@@ -1,7 +1,6 @@
-const Inventory = require('../models/inventory.model');
+const Inventory = require('../model/inventory.model');
 const Supplier = require('../model/supplier.model');
 const OrderItem = require('../model/orderitem.model');
-const { findOne } = require('../model/order.model');
 
 
 const reservedInventoryForOrderItem = async (orderItemId, quantity) => {
