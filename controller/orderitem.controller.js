@@ -1,6 +1,7 @@
 const OrderItem = require('../model/orderitem.model');
 const Order = require('../model/order.model');
 const Product = require('../model/product.model');
+const Supplier = require('../model/supplier.model');
 
 const addOrderItem = async (req, res) => {
     try {
@@ -18,6 +19,9 @@ const addOrderItem = async (req, res) => {
         const order = await Order.findById(orderId);
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
+        }
+        if (order.createdBy.toString() !== req.user.userId) {
+            return res.status(403).json({ message: 'Not authorized to modify items for this order' });
         }
         if (order.status !== 'pending') {
             return res.status(400).json({ message: 'Order items can only be modified while order is pending' });
@@ -54,6 +58,16 @@ const getOrderItems = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
+        const isOwner = order.createdBy.toString() === req.user.userId;
+        let isAssignedSupplier = false;
+        if (order.supplier) {
+            const supplier = await Supplier.findById(order.supplier);
+            isAssignedSupplier = supplier && supplier.user.toString() === req.user.userId;
+        }
+        if (!isOwner && !isAssignedSupplier) {
+            return res.status(403).json({ message: 'Not authorized to view items for this order' });
+        }
+
         const items = await OrderItem.find({ order: orderId }).populate('product', 'name description category');
         res.status(200).json({ items });
     } catch (err) {
@@ -82,6 +96,9 @@ const updateOrderItem = async (req, res) => {
         const order = await Order.findById(orderId);
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
+        }
+        if (order.createdBy.toString() !== req.user.userId) {
+            return res.status(403).json({ message: 'Not authorized to modify items for this order' });
         }
         if (order.status !== 'pending') {
             return res.status(400).json({ message: 'Order items can only be modified while order is pending' });
@@ -113,6 +130,9 @@ const deleteOrderItem = async (req, res) => {
         const order = await Order.findById(orderId);
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
+        }
+        if (order.createdBy.toString() !== req.user.userId) {
+            return res.status(403).json({ message: 'Not authorized to modify items for this order' });
         }
         if (order.status !== 'pending') {
             return res.status(400).json({ message: 'Order items can only be modified while order is pending' });

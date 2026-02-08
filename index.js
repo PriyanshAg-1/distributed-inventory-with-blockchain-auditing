@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express =  require('express');
+const path = require('path');
 
 // Import route modules
 const authRoutes = require('./routes/auth.routes');
@@ -20,6 +21,12 @@ const app = express();
 
 // Middleware to parse JSON requests
 app.use(express.json());
+
+// Serve basic frontend
+// app.use(express.static(path.join(__dirname, 'view')));
+// app.get('/', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'view', 'index.html'));
+// });
 
 // Use route modules
 app.use('/api/auth', authRoutes);
@@ -54,4 +61,3 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 module.exports = app; // Export app for testing purposes
-

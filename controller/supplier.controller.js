@@ -4,6 +4,10 @@ const Supplier = require('../model/supplier.model');
 const createSupplier = async (req, res) => {
     try {
         const userId = req.user.userId;
+        const existing = await Supplier.findOne({ user: userId });
+        if (existing) {
+            return res.status(400).json({ message: 'Supplier already exists for this user' });
+        }
         const supplier = new Supplier({
             ...req.body,
             user: userId
@@ -18,7 +22,7 @@ const createSupplier = async (req, res) => {
 // Get all suppliers
 const getSuppliers = async (req, res) => {
     try {
-        const suppliers = await Supplier.find();
+        const suppliers = await Supplier.find({ user: req.user.userId });
         res.json(suppliers);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -28,7 +32,13 @@ const getSuppliers = async (req, res) => {
 // Update a supplier
 const updateSupplier = async (req, res) => {
     try {
-        const supplier = await Supplier.findByIdAndUpdate(req.params.supplierId, req.body, { new: true });
+        const updates = { ...req.body };
+        delete updates.user;
+        const supplier = await Supplier.findOneAndUpdate(
+            { _id: req.params.supplierId, user: req.user.userId },
+            updates,
+            { new: true }
+        );
         if (!supplier) {
             return res.status(404).json({ message: 'Supplier not found' });
         }
@@ -41,7 +51,7 @@ const updateSupplier = async (req, res) => {
 // Delete a supplier
 const deleteSupplier = async (req, res) => {
     try {
-        const supplier = await Supplier.findByIdAndDelete(req.params.supplierId);
+        const supplier = await Supplier.findOneAndDelete({ _id: req.params.supplierId, user: req.user.userId });
         if (!supplier) {
             return res.status(404).json({ message: 'Supplier not found' });
         }

@@ -1,12 +1,17 @@
 const Inventory = require('../model/inventory.model');
 const Warehouse = require('../model/warehouse.model');
 const Product = require('../model/product.model');
+const Supplier = require('../model/supplier.model');
 const mongoose = require('mongoose');
 
 // Add or update inventory for a product in a warehouse
 const addInventory = async (req, res) => {
     console.log('addInventory called with:', req.body);
     try {
+        const supplier = await Supplier.findOne({ user: req.user.userId });
+        if (!supplier) {
+            return res.status(403).json({ message: 'Supplier account required' });
+        }
         const { warehouseId, productId, quantity } = req.body;
 
         // Validate inputs
@@ -26,6 +31,9 @@ const addInventory = async (req, res) => {
         console.log('Warehouse found:', !!warehouse);
         if (!warehouse) {
             return res.status(404).json({ message: 'Warehouse not found' });
+        }
+        if (warehouse.supplier.toString() !== supplier._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized for this warehouse' });
         }
 
         // Check if product exists
@@ -74,6 +82,10 @@ const getWarehouseInventory = async (req, res) => {
         if (!warehouse) {
             return res.status(404).json({ message: 'Warehouse not found' });
         }
+        const supplier = await Supplier.findOne({ user: req.user.userId });
+        if (!supplier || warehouse.supplier.toString() !== supplier._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized for this warehouse' });
+        }
 
         // Get all inventory for this warehouse
         const inventory = await Inventory.find({ warehouse: warehouseId })
@@ -92,6 +104,10 @@ const getWarehouseInventory = async (req, res) => {
 const getProductInventory = async (req, res) => {
     try {
         const { productId } = req.params;
+        const supplier = await Supplier.findOne({ user: req.user.userId });
+        if (!supplier) {
+            return res.status(403).json({ message: 'Supplier account required' });
+        }
 
         // Check if product exists
         const product = await Product.findById(productId);
@@ -99,8 +115,11 @@ const getProductInventory = async (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
+        const warehouses = await Warehouse.find({ supplier: supplier._id }).select('_id');
+        const warehouseIds = warehouses.map(w => w._id);
+
         // Get all inventory for this product
-        const inventory = await Inventory.find({ product: productId })
+        const inventory = await Inventory.find({ product: productId, warehouse: { $in: warehouseIds } })
             .populate('product', 'name description')
             .populate('warehouse', 'name location');
 
@@ -115,6 +134,10 @@ const getProductInventory = async (req, res) => {
 // Remove inventory (reduce stock)
 const removeInventory = async (req, res) => {
     try {
+        const supplier = await Supplier.findOne({ user: req.user.userId });
+        if (!supplier) {
+            return res.status(403).json({ message: 'Supplier account required' });
+        }
         const { warehouseId, productId, quantity } = req.body;
 
         // Validate inputs
@@ -131,6 +154,16 @@ const removeInventory = async (req, res) => {
 
         if (!inventory) {
             return res.status(404).json({ message: 'Inventory record not found' });
+        }
+        if (inventory.warehouse.toString() !== warehouseId) {
+            return res.status(400).json({ message: 'Invalid warehouse' });
+        }
+        const warehouse = await Warehouse.findById(warehouseId);
+        if (!warehouse) {
+            return res.status(404).json({ message: 'Warehouse not found' });
+        }
+        if (warehouse.supplier.toString() !== supplier._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized for this warehouse' });
         }
 
         // Check if there's enough available quantity

@@ -58,6 +58,7 @@ const getOrders = async (req, res) => {
 const assignSupplierToOrder = async (req, res) => {
     try {
         // Extract orderId and supplierId from request body
+        const userId = req.user.userId;
         const { orderId } = req.params;
         const { supplierId } = req.body;
 
@@ -70,6 +71,9 @@ const assignSupplierToOrder = async (req, res) => {
         const order = await Order.findById(orderId);
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
+        }
+        if (order.createdBy.toString() !== userId) {
+            return res.status(403).json({ message: 'Not authorized to assign supplier for this order' });
         }
 
         if (order.status !== 'pending'){
