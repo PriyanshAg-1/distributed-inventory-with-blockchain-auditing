@@ -1,4 +1,4 @@
-# Blockchain Inventory Management (Backend)
+# Distributed Inventory Management with blockchain audit (Backend)
 
 This backend provides inventory, order, supplier, and warehouse APIs with **blockchain-backed order approvals** on Sepolia. It uses an **async confirmation** flow: approvals/completions submit a blockchain transaction, then a worker confirms and updates order status.
 
