@@ -122,19 +122,26 @@ const updateOrderStatus = async (req, res) => {
             return res.status(403).json({message: 'Not authorized for this order'});
         }
 
-        // Check if the order is already processed
-        if (order.status !== 'pending'){
-            return res.status(400).json({message: 'Order is already processed'});
+        const validTransitions = {
+            pending: ['approved', 'rejected'],
+            approved: ['completed'],
+            rejected: [],
+            completed: []
+        };
+
+        if (!validTransitions[order.status].includes(status)) {
+            return res.status(400).json({
+                message: `Invalid status transition from ${order.status} to ${status}`
+            });
         }
 
-        if (status === 'approved'){
+        if (order.status === 'pending' && status === 'approved'){
             await reservedInventoryForOrder(order._id, order.warehouse);
         }
-        if (status === 'rejected'){
-            // Logic for releasing inventory can be added here if needed
+        if (order.status === 'approved' && status === 'rejected'){
             await releaseInventoryForOrder(order._id, order.warehouse);
         }
-        if (status === 'completed'){
+        if (order.status === 'approved' && status === 'completed'){
             await finalizeInventoryForOrder(order._id, order.warehouse);
         }
         // Update the order status

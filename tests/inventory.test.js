@@ -218,7 +218,7 @@ describe('Inventory Management API', () => {
     expect(inventoryRes.body.inventory[0].reservedQuantity).toBe(10);
   });
 
-  test('should reject completion after approval (current behavior)', async () => {
+  test('should allow completion after approval', async () => {
     const { token, supplierId, warehouseId, productId } = await setupBase();
 
     await request(app)
@@ -263,13 +263,13 @@ describe('Inventory Management API', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ status: 'completed' });
 
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(200);
 
     const inventoryRes = await request(app)
       .get(`/api/inventory/warehouse/${warehouseId}`)
       .set('Authorization', `Bearer ${token}`);
 
     expect(inventoryRes.body.inventory[0].availableQuantity).toBe(115);
-    expect(inventoryRes.body.inventory[0].reservedQuantity).toBe(10);
+    expect(inventoryRes.body.inventory[0].reservedQuantity).toBe(0);
   });
 });

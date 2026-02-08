@@ -9,7 +9,7 @@ const {
 const authMiddleware = require('../middleware/auth.middleware');
 
 // Add or update inventory
-router.post('/', addInventory);
+router.post('/', authMiddleware, addInventory);
 
 // Remove inventory
 router.delete('/', authMiddleware, removeInventory);

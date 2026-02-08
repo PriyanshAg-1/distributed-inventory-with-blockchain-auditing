@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth.routes');
 const protectedRoutes = require('./routes/protected.routes');
 const orderRoutes = require('./routes/order.routes');
 const orderitemRoutes = require('./routes/orderitem.routes');
+const transactionRoutes = require('./routes/transaction.routes');
 const inventoryRoutes = require('./routes/inventory.routes');
 const productRoutes = require('./routes/product.routes');
 const supplierRoutes = require('./routes/supplier.routes');
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 // app.use('/api/protected', protectedRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/orders', orderitemRoutes);
+app.use('/api/orders', transactionRoutes);
 app.use('/api/inventory', inventoryRoutes);
 
 // Use product, supplier, and warehouse routes
