@@ -5,6 +5,8 @@ const express =  require('express');
 const authRoutes = require('./routes/auth.routes');
 const protectedRoutes = require('./routes/protected.routes');
 const orderRoutes = require('./routes/order.routes');
+const orderitemRoutes = require('./routes/orderitem.routes');
+const inventoryRoutes = require('./routes/inventory.routes');
 const productRoutes = require('./routes/product.routes');
 const supplierRoutes = require('./routes/supplier.routes');
 const warehouseRoutes = require('./routes/warehouse.routes');
@@ -22,6 +24,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 // app.use('/api/protected', protectedRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/orders', orderitemRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 // Use product, supplier, and warehouse routes
 app.use('/api/products', productRoutes);

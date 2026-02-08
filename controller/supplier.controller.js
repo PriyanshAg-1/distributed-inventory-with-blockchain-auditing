@@ -3,7 +3,11 @@ const Supplier = require('../model/supplier.model');
 // Create a new supplier
 const createSupplier = async (req, res) => {
     try {
-        const supplier = new Supplier(req.body);
+        const userId = req.user.userId;
+        const supplier = new Supplier({
+            ...req.body,
+            user: userId
+        });
         await supplier.save();
         res.status(201).json(supplier);
     } catch (err) {

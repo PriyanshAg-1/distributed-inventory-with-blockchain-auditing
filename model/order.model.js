@@ -18,6 +18,11 @@ const OrderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Supplier',
         default: null
+    },
+    warehouse: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Warehouse',
+        required: true
     }
 },
 { timestamps: true }

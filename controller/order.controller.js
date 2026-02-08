@@ -1,6 +1,7 @@
 const Order = require('../model/order.model');
 const Supplier = require('../model/supplier.model');
-const {reservedInventoryForOrderItem} = require('../services/inventory.services');
+const Warehouse = require('../model/warehouse.model');
+const {reservedInventoryForOrder, releaseInventoryForOrder, finalizeInventoryForOrder} = require('../services/inventory.services');
 
 
 // Create a new order
@@ -8,17 +9,22 @@ const createOrder = async (req, res) => {
     try {
         // Get user ID from the authenticated request
         const userId = req.user.userId;
-        const { orderType} = req.body;
+        const { orderType, warehouseId} = req.body;
 
         // Check if Order Type is provided
         if (!orderType) {
             return res.status(400).json({ message: 'Please provide all required fields' });
         }
 
+        const warehouse = await Warehouse.findById(warehouseId);
+        if (!warehouse){
+            return res.status(404).json({ message: 'Warehouse not found'});
+        }
         // Create and save the new order
         const newOrder = new Order({
             orderType,
-            createdBy: userId
+            createdBy: userId,
+            warehouse: warehouseId
         });
         await newOrder.save();
 
@@ -95,8 +101,8 @@ const updateOrderStatus = async (req, res) => {
         const {status} = req.body;
 
         // Validate input
-        if (!['approved', 'rejected'].includes(status)){
-            return res.status(400).json({message: 'Status must be approved or rejected'});
+        if (!['approved', 'rejected', 'completed'].includes(status)){
+            return res.status(400).json({message: 'Status must be approved, rejected, or completed'});
         }
 
         // Find the order by ID
@@ -122,14 +128,14 @@ const updateOrderStatus = async (req, res) => {
         }
 
         if (status === 'approved'){
-            await reservedInventoryForOrderItem(order._id,warehouseId);
+            await reservedInventoryForOrder(order._id, order.warehouse);
         }
         if (status === 'rejected'){
             // Logic for releasing inventory can be added here if needed
-            await releaseInventoryForOrderItem(order._id,warehouseId);
+            await releaseInventoryForOrder(order._id, order.warehouse);
         }
         if (status === 'completed'){
-            await finalizeInventoryForOrderItem(order._id,warehouseId);
+            await finalizeInventoryForOrder(order._id, order.warehouse);
         }
         // Update the order status
         order.status = status;

@@ -1,84 +1,107 @@
 const Inventory = require('../model/inventory.model');
-const Supplier = require('../model/supplier.model');
 const OrderItem = require('../model/orderitem.model');
 
+// Reserve inventory for all items in an order
+const reservedInventoryForOrder = async (orderId, warehouseId) => {
+    // Find all order items for this order
+    const orderItems = await OrderItem.find({ order: orderId });
 
-const reservedInventoryForOrderItem = async (orderItemId, quantity) => {
-    // Find the order item by ID
-    const orderItem = await OrderItem.findById(orderItemId);
-
-    // Check if item exist
-    if (!orderItem) {
-        throw new Error('Order item does not exist');
+    if (!orderItems || orderItems.length === 0) {
+        throw new Error('No order items found for this order');
     }
 
-    // For every item in Order
-    for (const item of orderItem){
+    // Process each order item
+    for (const orderItem of orderItems) {
         const inventory = await Inventory.findOne({
             warehouse: warehouseId,
-            product: productId
+            product: orderItem.product
         });
 
-    // Check if inventory exist
-    if (!inventory){
-        throw new Error('Inventory record not found');
-    }
-
-    // Check if inventory stock is sufficient
-    if (inventory.availableQuantity < item.quantity){
-        throw new Error('Insufficient Stock');
-    }
-
-    // Reserve your inventory
-    inventory.availableQuantity -= item.quantity;
-    inventory.reservedQuantity += item.quantity;
-
-    // Save inventory in the database 
-    await inventory.save();
-    }
-};
-
-const releaseInventoryForOrderItem = async (orderId, warehouseId) => {
-    const orderItem = await OrderItem.findById(orderId);  
-
-    for (const item of orderItem){
-        const inventory = await Inventory.findOne({
-            warehouse: warehouseId,
-            product: productId
-        })
-        inventory.availableQuantity += item.quantity;
-        inventory.reservedQuantity -= item.quantity;
-        await inventory.save();
-    }
-};
-
-const finalizeInventoryForOrderItem = async (orderId, warehouseId) => {
-    const orderItem = await OrderItem.findById(orderId);  
-
-    if (!orderItem) {
-        throw new Error('Order item does not exist');
-    }
-
-    for (const item of orderItem){
-        const inventory = await Inventory.findOne({
-            warehouse: warehouseId,
-            product: productId
-        })
-        if (!inventory){
-            throw new Error('Inventory record not found');
+        if (!inventory) {
+            throw new Error(`Inventory record not found for product ${orderItem.product}`);
         }
 
         // Check if inventory stock is sufficient
-        if (inventory.availableQuantity < item.quantity){
-            throw new Error('Insufficient Stock');
+        if (inventory.availableQuantity < orderItem.quantity) {
+            throw new Error(`Insufficient stock for product ${orderItem.product}`);
         }
-        inventory.reservedQuantity -= item.quantity;
+
+        // Reserve the inventory
+        inventory.availableQuantity -= orderItem.quantity;
+        inventory.reservedQuantity += orderItem.quantity;
+
+        // Save inventory in the database
         await inventory.save();
     }
 };
-// Exported Functions 
+
+// Release reserved inventory for all items in an order (when order is rejected)
+const releaseInventoryForOrder = async (orderId, warehouseId) => {
+    // Find all order items for this order
+    const orderItems = await OrderItem.find({ order: orderId });
+
+    if (!orderItems || orderItems.length === 0) {
+        throw new Error('No order items found for this order');
+    }
+
+    // Process each order item
+    for (const orderItem of orderItems) {
+        const inventory = await Inventory.findOne({
+            warehouse: warehouseId,
+            product: orderItem.product
+        });
+
+        if (!inventory) {
+            throw new Error(`Inventory record not found for product ${orderItem.product}`);
+        }
+
+        // Release the reserved inventory
+        inventory.availableQuantity += orderItem.quantity;
+        inventory.reservedQuantity -= orderItem.quantity;
+
+        // Ensure reserved quantity doesn't go negative
+        if (inventory.reservedQuantity < 0) {
+            inventory.reservedQuantity = 0;
+        }
+
+        await inventory.save();
+    }
+};
+
+// Finalize inventory for all items in an order (when order is completed)
+const finalizeInventoryForOrder = async (orderId, warehouseId) => {
+    // Find all order items for this order
+    const orderItems = await OrderItem.find({ order: orderId });
+
+    if (!orderItems || orderItems.length === 0) {
+        throw new Error('No order items found for this order');
+    }
+
+    // Process each order item
+    for (const orderItem of orderItems) {
+        const inventory = await Inventory.findOne({
+            warehouse: warehouseId,
+            product: orderItem.product
+        });
+
+        if (!inventory) {
+            throw new Error(`Inventory record not found for product ${orderItem.product}`);
+        }
+
+        // Remove from reserved (item is now sold/delivered)
+        inventory.reservedQuantity -= orderItem.quantity;
+
+        // Ensure reserved quantity doesn't go negative
+        if (inventory.reservedQuantity < 0) {
+            inventory.reservedQuantity = 0;
+        }
+
+        await inventory.save();
+    }
+};
+// Exported Functions
 module.exports = {
-    reservedInventoryForOrderItem,
-    releaseInventoryForOrderItem,
-    finalizeInventoryForOrderItem
+    reservedInventoryForOrder,
+    releaseInventoryForOrder,
+    finalizeInventoryForOrder
 };
