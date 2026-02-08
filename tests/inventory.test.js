@@ -10,8 +10,7 @@ async function setupBase() {
     .send({
       name: `Inventory Test User ${suffix}`,
       email: `inventory${suffix}@test.com`,
-      password: 'password123',
-      walletAddress: `0xINVENTORY${suffix}`
+      password: 'password123'
     });
 
   const token = registerRes.body.token;

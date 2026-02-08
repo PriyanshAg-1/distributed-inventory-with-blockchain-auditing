@@ -14,8 +14,7 @@ describe('Supplier API', () => {
       .send({
         name: 'Supplier Test User',
         email: 'suppliertest@test.com',
-        password: 'password123',
-        walletAddress: '0xSUPPLIERUSER123'
+        password: 'password123'
       });
 
     userId = registerRes.body.user.id;

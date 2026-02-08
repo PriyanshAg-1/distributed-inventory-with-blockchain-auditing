@@ -6,7 +6,6 @@ const mongoose = require('mongoose');
 
 // Add or update inventory for a product in a warehouse
 const addInventory = async (req, res) => {
-    console.log('addInventory called with:', req.body);
     try {
         const supplier = await Supplier.findOne({ user: req.user.userId });
         if (!supplier) {
@@ -24,11 +23,7 @@ const addInventory = async (req, res) => {
         }
 
         // Check if warehouse exists
-        console.log('Looking for warehouse:', warehouseId);
-        console.log('Mongoose connection state:', mongoose.connection.readyState);
         const warehouse = await Warehouse.findById(warehouseId);
-        console.log('Warehouse query result:', warehouse);
-        console.log('Warehouse found:', !!warehouse);
         if (!warehouse) {
             return res.status(404).json({ message: 'Warehouse not found' });
         }
@@ -38,7 +33,6 @@ const addInventory = async (req, res) => {
 
         // Check if product exists
         const product = await Product.findById(productId);
-        console.log('Product found:', !!product);
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
@@ -60,7 +54,6 @@ const addInventory = async (req, res) => {
         }
 
         await inventory.save();
-        console.log('Inventory saved successfully');
         res.status(200).json({
             message: 'Inventory updated successfully',
             inventory

@@ -1,17 +1,18 @@
 const Transaction = require('../model/transaction.model');
 const Order = require('../model/order.model');
+const { submitTransaction } = require('../services/blockchain.service');
 
 const createTransaction = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const { transactionHash, status } = req.body;
+        const { transactionHash, status, action } = req.body;
 
         if (!orderId) {
             return res.status(400).json({ message: 'Order ID is required' });
         }
 
-        if (!transactionHash || !status) {
-            return res.status(400).json({ message: 'Transaction hash and status are required' });
+        if (!action || !['approved', 'completed'].includes(action)) {
+            return res.status(400).json({ message: 'Action must be approved or completed' });
         }
 
         const order = await Order.findById(orderId);
@@ -19,13 +20,25 @@ const createTransaction = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        const transaction = await Transaction.create({
-            order: orderId,
-            transactionHash,
-            status
+        const suppliedHash = typeof transactionHash === 'string' ? transactionHash.trim() : '';
+        const { transactionHash: finalHash, source } = await submitTransaction({
+            transactionHash: suppliedHash || null,
+            payload: { orderId, action }
         });
 
-        res.status(201).json(transaction);
+        const chainStatus = suppliedHash ? (status || 'submitted') : 'submitted';
+
+        const transaction = await Transaction.create({
+            order: orderId,
+            transactionHash: finalHash,
+            action,
+            status: chainStatus
+        });
+
+        res.status(201).json({
+            ...transaction.toObject(),
+            source
+        });
     } catch (err) {
         if (err && err.code === 11000) {
             return res.status(409).json({ message: 'Transaction hash already exists' });

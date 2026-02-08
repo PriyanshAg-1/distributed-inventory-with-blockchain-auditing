@@ -2,6 +2,8 @@ const Order = require('../model/order.model');
 const Supplier = require('../model/supplier.model');
 const Warehouse = require('../model/warehouse.model');
 const {reservedInventoryForOrder, releaseInventoryForOrder, finalizeInventoryForOrder} = require('../services/inventory.services');
+const Transaction = require('../model/transaction.model');
+const { submitTransaction } = require('../services/blockchain.service');
 
 
 // Create a new order
@@ -136,6 +138,44 @@ const updateOrderStatus = async (req, res) => {
         if (!validTransitions[order.status].includes(status)) {
             return res.status(400).json({
                 message: `Invalid status transition from ${order.status} to ${status}`
+            });
+        }
+
+        const isTestEnv = process.env.NODE_ENV === 'test';
+        const isChainAction = status === 'approved' || status === 'completed';
+
+        if (!isTestEnv && isChainAction) {
+            const existing = await Transaction.findOne({
+                order: orderId,
+                action: status,
+                status: 'submitted'
+            });
+            if (existing) {
+                return res.status(409).json({
+                    message: 'Transaction already submitted',
+                    transaction: existing
+                });
+            }
+
+            const { transactionHash, source } = await submitTransaction({
+                transactionHash: null,
+                payload: { orderId, action: status }
+            });
+
+            if (source === 'stub') {
+                return res.status(503).json({ message: 'Blockchain not configured' });
+            }
+
+            const transaction = await Transaction.create({
+                order: orderId,
+                transactionHash,
+                action: status,
+                status: 'submitted'
+            });
+
+            return res.status(202).json({
+                message: `Order ${status} transaction submitted`,
+                transaction
             });
         }
 

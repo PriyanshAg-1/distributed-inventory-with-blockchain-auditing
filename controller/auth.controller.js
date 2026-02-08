@@ -5,10 +5,10 @@ const User = require('../model/user.model');
 // Register a new user
 const register = async (req, res) => {
     try {
-        const { name, walletAddress, email, password } = req.body;
+        const { name, email, password } = req.body;
 
         // 1. Basic validation
-        if(!name || !walletAddress || !email || !password) {
+        if(!name || !email || !password) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
@@ -25,7 +25,6 @@ const register = async (req, res) => {
         // 4. Create user
         const user = await User.create({
             name,
-            walletAddress,
             email,
             passwordHash
         });
@@ -44,8 +43,7 @@ const register = async (req, res) => {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email,
-                walletAddress: user.walletAddress
+                email: user.email
             }
         });
     } catch (error) {
@@ -91,8 +89,7 @@ const login = async (req, res) => {
             user: {
                 id: user._id,
                 name: user.name,
-                email: user.email,
-                walletAddress: user.walletAddress
+                email: user.email
             }
         });
     } catch (error) {

@@ -12,8 +12,7 @@ describe('Warehouse API', () => {
       .send({
         name: 'Warehouse Test User',
         email: 'warehousetest@test.com',
-        password: 'password123',
-        walletAddress: '0xWAREHOUSEUSER123'
+        password: 'password123'
       });
 
     userId = registerRes.body.user.id;

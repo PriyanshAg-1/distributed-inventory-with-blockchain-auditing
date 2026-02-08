@@ -12,8 +12,7 @@ describe('Product API', () => {
       .send({
         name: 'Product Test User',
         email: 'producttest@test.com',
-        password: 'password123',
-        walletAddress: '0xPRODUCTTEST123'
+        password: 'password123'
       });
 
     const loginRes = await request(app)

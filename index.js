@@ -44,9 +44,6 @@ app.use('/api/warehouses', warehouseRoutes);
 // Start the server
 const PORT = process.env.PORT || 5000;
 
-// Debug: Log the MongoDB URI to verify it's loaded correctly
-// console.log(process.env.MONGO_URI);
-
 // Connect to the database and start the server
 if (process.env.NODE_ENV !== 'test') {
   connectDB()

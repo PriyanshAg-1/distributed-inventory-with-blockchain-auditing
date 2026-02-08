@@ -10,8 +10,15 @@ const TransactionSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    action: {
+        type: String,
+        enum: ['approved', 'completed'],
+        required: true
+    },
     status: {
         type: String,
+        enum: ['submitted', 'confirmed', 'failed'],
+        default: 'submitted',
         required: true
     },
 },

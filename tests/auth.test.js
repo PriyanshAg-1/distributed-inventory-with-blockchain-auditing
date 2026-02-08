@@ -5,8 +5,7 @@ describe('Auth API', () => {
   let testUser = {
     name: 'Test User',
     email: 'testuser@test.com',
-    password: 'password123',
-    walletAddress: '0xTEST123'
+    password: 'password123'
   };
 
   it('should register a user', async () => {

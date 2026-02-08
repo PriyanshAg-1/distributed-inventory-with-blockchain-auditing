@@ -10,8 +10,7 @@ async function setupBase() {
     .send({
       name: `Tx User ${suffix}`,
       email: `txuser${suffix}@test.com`,
-      password: 'password123',
-      walletAddress: `0xTXUSER${suffix}`
+      password: 'password123'
     });
 
   const token = registerRes.body.token;
@@ -60,7 +59,8 @@ describe('Transaction API', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         transactionHash: '0xTXHASH1',
-        status: 'submitted'
+        status: 'submitted',
+        action: 'approved'
       });
 
     expect(res.statusCode).toBe(201);
@@ -76,7 +76,8 @@ describe('Transaction API', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         transactionHash: '0xTXHASH2',
-        status: 'submitted'
+        status: 'submitted',
+        action: 'approved'
       });
 
     await request(app)
@@ -84,7 +85,8 @@ describe('Transaction API', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         transactionHash: '0xTXHASH3',
-        status: 'confirmed'
+        status: 'confirmed',
+        action: 'completed'
       });
 
     const res = await request(app)
@@ -104,7 +106,8 @@ describe('Transaction API', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         transactionHash: '0xDUPHASH',
-        status: 'submitted'
+        status: 'submitted',
+        action: 'approved'
       });
 
     const res = await request(app)
@@ -112,7 +115,8 @@ describe('Transaction API', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         transactionHash: '0xDUPHASH',
-        status: 'submitted'
+        status: 'submitted',
+        action: 'approved'
       });
 
     expect(res.statusCode).toBe(409);
